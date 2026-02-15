@@ -76,13 +76,13 @@ class TurtleBotInterface(Node):
         path_ptr = os.path.join(os.getcwd(), "last_file.ptr")
     
     	with open(os.path.expanduser("~/ros2_ws/last_file.ptr"), "w") as f:
-             f.write(fname)
+            f.write(fname)
     
     
     	if self.player_client.wait_for_service(timeout_sec=1.0):
-             req = Trigger.Request()
-             self.player_client.call_async(req)
-             print(f"Solicitando reproducción de: {fname}...")
+            req = Trigger.Request()
+            self.player_client.call_async(req)
+            print(f"Solicitando reproducción de: {fname}...")
        
 
     def close_log(self):
