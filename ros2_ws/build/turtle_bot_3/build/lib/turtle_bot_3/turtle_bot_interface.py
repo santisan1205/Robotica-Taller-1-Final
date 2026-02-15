@@ -71,18 +71,21 @@ class TurtleBotInterface(Node):
         return self.line,
 
     def call_player_service(self, event):
-    
-    	fname = input("\nIngrese nombre de archivo a reproducir (sin .txt): ")
+        fname = input("\nIngrese nombre de archivo a reproducir (sin .txt): ")
+        
+        # Usamos os.getcwd() para que encuentre la carpeta sin importar el nombre largo
         path_ptr = os.path.join(os.getcwd(), "last_file.ptr")
     
-    	with open(os.path.expanduser("~/ros2_ws/last_file.ptr"), "w") as f:
-            f.write(fname)
-    
-    
-    	if self.player_client.wait_for_service(timeout_sec=1.0):
-            req = Trigger.Request()
-            self.player_client.call_async(req)
-            print(f"Solicitando reproducción de: {fname}...")
+        try:
+            with open(path_ptr, "w") as f:
+                f.write(fname)
+        
+            if self.player_client.wait_for_service(timeout_sec=1.0):
+                req = Trigger.Request()
+                self.player_client.call_async(req)
+                print(f"Solicitando reproducción de: {fname}...")
+        except Exception as e:
+            print(f"Error al crear el archivo de control: {e}")
        
 
     def close_log(self):
