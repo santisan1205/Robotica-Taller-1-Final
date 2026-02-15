@@ -16,50 +16,73 @@ class TurtleBotPlayer(Node):
         self.get_logger().info('Nodo Player listo y esperando servicio Trigger...')
 
     def play_callback(self, request, response):
-    # 1. Leer el nombre del archivo del puntero temporal
-        ptr_path = os.path.expanduser("~/ros2_ws/last_file.ptr")
-        with open(ptr_path, "r") as f:
-            target_name = f.read().strip()
-    
-        filename = os.path.expanduser(f"~/ros2_ws/{target_name}.txt")
-    
         try:
+            # Detectamos la carpeta donde estas parado actualmente (ros2_ws)
+            
+            current_dir = os.getcwd()
+            ptr_path = os.path.join(current_dir, "last_file.ptr")
+            
+            # Verificamos si el archivo de control existe
+            if not os.path.exists(ptr_path):
+                self.get_logger().error(f"No se encontro el archivo: {ptr_path}")
+                response.success = False
+                response.message = "Error: No se ha seleccionado archivo en la interfaz."
+                return response
+
+            # Leemos el nombre del archivo guardado por la interfaz
+            with open(ptr_path, "r") as f:
+                target_name = f.read().strip()
+        
+            # Construimos la ruta al archivo .txt
+            filename = os.path.join(current_dir, f"{target_name}.txt")
+        
+            if not os.path.exists(filename):
+                self.get_logger().error(f"No existe el archivo de datos: {filename}")
+                response.success = False
+                response.message = f"Archivo '{target_name}.txt' no encontrado."
+                return response
+
+            # Leemos las lineas del archivo
             with open(filename, 'r') as file:
                 lines = file.readlines()
-        
+            
             self.get_logger().info(f"Iniciando reproduccion de {len(lines)} lineas...")
-        
-        # IMPORTANTE: Reiniciamos el tiempo justo antes de empezar a publicar
+            
+            # Lógica de reproducción con tiempo sincronizado
             start_replay = time.time()
-        
+            
             for line in lines:
                 partes = line.strip().split(',')
+                # Validamos que la linea tenga los 3 datos: Tiempo, Lineal, Angular
+                if len(partes) < 3:
+                    continue
+                    
                 tiempo_grabado = float(partes[0])
                 v_lineal = float(partes[1])
                 v_angular = float(partes[2])
-                
+                    
                 # Esperar hasta que llegue el momento de ejecutar este comando
                 while (time.time() - start_replay) < tiempo_grabado:
-                    time.sleep(0.001) # Micro-espera para no saturar el CPU
+                    time.sleep(0.001) 
             
-                # Publicar el comando
+                # Publicamos el comando de velocidad al robot
                 msg = Twist()
                 msg.linear.x = v_lineal
                 msg.angular.z = v_angular
-                self.publisher.publish(msg)
+                self.publisher.publish(msg) # <--- Asegúrate que sea .publisher (sin _)
             
-        # Detener el robot al final
+            # 5. Detenemos el robot al terminar
             self.publisher.publish(Twist())
-        
+            
             response.success = True
             response.message = "Reproduccion finalizada con exito"
             self.get_logger().info("Reproduccion finalizada")
-            
+                
         except Exception as e:
             response.success = False
-            response.message = str(e)
-            self.get_logger().error(f"Error: {e}")
-        
+            response.message = f"Error interno: {str(e)}"
+            self.get_logger().error(f"Error en play_callback: {e}")
+            
         return response
 
 def main(args=None):
