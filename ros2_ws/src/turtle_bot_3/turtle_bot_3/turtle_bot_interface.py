@@ -73,6 +73,7 @@ class TurtleBotInterface(Node):
     def call_player_service(self, event):
     
     	fname = input("\nIngrese nombre de archivo a reproducir (sin .txt): ")
+        path_ptr = os.path.join(os.getcwd(), "last_file.ptr")
     
     	with open(os.path.expanduser("~/ros2_ws/last_file.ptr"), "w") as f:
              f.write(fname)
