@@ -10,30 +10,30 @@ import time
 class TurtleBotPlayer(Node):
     def __init__(self):
         super().__init__('turtle_bot_player')
-        # Definimos el servicio Trigger (sin campos de texto para evitar errores)
+        # Definir el servicio Trigger
         self.srv = self.create_service(Trigger, 'play_recording', self.play_callback)
         self.publisher = self.create_publisher(Twist, 'turtlebot_cmdVel', 10)
         self.get_logger().info('Nodo Player listo y esperando servicio Trigger...')
 
     def play_callback(self, request, response):
         try:
-            # Detectamos la carpeta donde estas parado actualmente (ros2_ws)
+            # Detectar la carpeta actual
             
             current_dir = os.getcwd()
             ptr_path = os.path.join(current_dir, "last_file.ptr")
             
-            # Verificamos si el archivo de control existe
+            # Verificar si el archivo de control existe
             if not os.path.exists(ptr_path):
                 self.get_logger().error(f"No se encontro el archivo: {ptr_path}")
                 response.success = False
                 response.message = "Error: No se ha seleccionado archivo en la interfaz."
                 return response
 
-            # Leemos el nombre del archivo guardado por la interfaz
+            # Leer el nombre del archivo guardado por la interfaz
             with open(ptr_path, "r") as f:
                 target_name = f.read().strip()
         
-            # Construimos la ruta al archivo .txt
+            # Construir la ruta al archivo .txt
             filename = os.path.join(current_dir, f"{target_name}.txt")
         
             if not os.path.exists(filename):
@@ -42,7 +42,7 @@ class TurtleBotPlayer(Node):
                 response.message = f"Archivo '{target_name}.txt' no encontrado."
                 return response
 
-            # Leemos las lineas del archivo
+            # Leer las lineas del archivo
             with open(filename, 'r') as file:
                 lines = file.readlines()
             
@@ -53,7 +53,7 @@ class TurtleBotPlayer(Node):
             
             for line in lines:
                 partes = line.strip().split(',')
-                # Validamos que la linea tenga los 3 datos: Tiempo, Lineal, Angular
+                # Validar que la linea tenga los 3 datos: Tiempo, Lineal, Angular
                 if len(partes) < 3:
                     continue
                     
@@ -65,13 +65,13 @@ class TurtleBotPlayer(Node):
                 while (time.time() - start_replay) < tiempo_grabado:
                     time.sleep(0.001) 
             
-                # Publicamos el comando de velocidad al robot
+                # Publicar el comando de velocidad al robot
                 msg = Twist()
                 msg.linear.x = v_lineal
                 msg.angular.z = v_angular
-                self.publisher.publish(msg) # <--- Asegúrate que sea .publisher (sin _)
+                self.publisher.publish(msg) 
             
-            # 5. Detenemos el robot al terminar
+            # Detener el robot al terminar
             self.publisher.publish(Twist())
             
             response.success = True
