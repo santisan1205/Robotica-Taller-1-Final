@@ -36,7 +36,7 @@ class TurtleBotInterface(Node):
         self.ax.set_title("Posición TurtleBot2")
         self.ax.legend()
 
-        # Botón en la interfaz para reproducir (Requerimiento 4)
+        # Botón en la interfaz para reproducir 
         self.ax_btn = plt.axes([0.7, 0.05, 0.2, 0.075])
         self.btn = Button(self.ax_btn, 'Reproducir')
         self.btn.on_clicked(self.call_player_service)
@@ -73,7 +73,7 @@ class TurtleBotInterface(Node):
     def call_player_service(self, event):
         fname = input("\nIngrese nombre de archivo a reproducir (sin .txt): ")
         
-        # Usamos os.getcwd() para que encuentre la carpeta sin importar el nombre largo
+        # Se usa os.getcwd() para que encuentre la carpeta
         path_ptr = os.path.join(os.getcwd(), "last_file.ptr")
     
         try:
